@@ -33,3 +33,4 @@ six
 traitlets
 wcwidth
 WTForms
+gunicorn
