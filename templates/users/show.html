@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user.full_name }}{% endblock %}}
+
+{% block header%}
+{% endblock %}
+{% block content %}
+
+<div id="game-container" value={{user.username}}>
+  <div id="dealer-card-area">
+  </div>
+  <div id="player-card-area">
+  </div>
+  <p id="results"></p>
+</div>
+
+<p hidden id="user-name" value={{user.username}}>{{user.username}}</p>
+
+<script src="https://unpkg.com/jquery"></script>
+<script src="https://unpkg.com/axios/dist/axios.js"></script>
+<script src="/static/game.js"></script>
+{% endblock %}
