@@ -1,5 +1,5 @@
 $(function() {
-    const BASE_URL = "http://localhost:5000";
+    const BASE_URL = "https://capstone1-4e6r.onrender.com";
     const card_URL = 'https://deckofcardsapi.com/api/deck';
     const back_of_card_URL = 'https://deckofcardsapi.com/static/img/back.png';
     let user;
