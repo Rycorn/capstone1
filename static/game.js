@@ -13,6 +13,7 @@ $(function() {
       $('#menu-box').attr('hidden', true);
       $('#bet-container').removeAttr('hidden');
       let bank = user.funds;
+      checkChips(bank)
       $('#bank').text("Bank: $" + bank);
       $('#bet-total').text("");
       $('#last-bet').attr("src", "");
@@ -31,6 +32,7 @@ $(function() {
         $('#bet-total').text("$ " + betTotal);
         $('#bank').text("Bank: $" + bank);
         $('#deal-button').removeAttr('hidden');
+        checkChips(bank)
       });
       $('#bet-total-box').on("click", "#last-bet", async function (evt) 
       {
@@ -45,6 +47,7 @@ $(function() {
             $('#last-bet').attr("src", betChipPool.pop());
             $('#bet-total').text("$ " + betTotal);
             $('#bank').text("Bank: $" + bank);
+            checkChips(bank)
           }
         }
         if(betPool.length == 0)
@@ -52,7 +55,7 @@ $(function() {
           $('#bet-total').text("");
           $('#last-bet').attr("src", "");
           $('#deal-button').attr('hidden', true);
-
+          checkChips(bank);
         }
       });
       $('#deal-button').on("click", async function (evt) 
@@ -60,6 +63,23 @@ $(function() {
         $('#bet-container').attr('hidden', true);
         dealCards();
       });
+    }
+
+    function checkChips(bank)
+    {
+      let chipBox = $('#chip-box')
+      for(let i = 0; i < chipBox[0].childElementCount; i++)
+      {
+        let child = chipBox[0].children[i];
+        if(bank > Number(child.id))
+        {
+          child.hidden = false;
+        }
+        else
+        {
+          child.hidden = true;
+        }
+      }
     }
 
     async function dealCards()

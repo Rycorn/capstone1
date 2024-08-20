@@ -270,6 +270,10 @@ root, [data-bs-theme=light] {
     height: auto;
     margin: auto;
 }
+#title
+{
+  font-size: 3rem;
+}
 .form-group
 {
     display: flex;
