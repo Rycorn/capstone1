@@ -6,127 +6,149 @@ $(function() {
     let deckData;
     let playerCardData;
     let dealerCardData;
-  
-    /** given data about a cupcake, generate html */
-  
-    function generateGameBoxHTML(user) {
-      return `
-        <div id="menu-box">
-              <p id="funds">Funds: ${user.funds}</p>  
-              <form id="gameform">
-                  <div id="bet">
-                      Bet:
-                      <input type="radio" name="bet" value="1" checked> 1 <br>
-                      <input type="radio" name="bet" value="5"> 5 <br>
-                      <input type="radio" name="bet" value="10"> 10 <br>
-                      <input type="radio" name="bet" value="20"> 20 <br>
-                  </div>
-                  <div id="game-button-container">
-                      <button id="add" type="button">Add</button>
-                      <button id="hold" type="button">Hold</button>
-                      <button id="fold" type="button">Fold</button>
-                  </div>  
-              <form>
-              
-          </div>
-      `;
+    let betTotal;
+
+    async function betSetup()
+    {
+      $('#menu-box').attr('hidden', true);
+      $('#bet-container').removeAttr('hidden');
+      let bank = user.funds;
+      $('#bank').text("Bank: $" + bank);
+      $('#bet-total').text("");
+      $('#last-bet').attr("src", "");
+      betTotal = 0;
+      let betPool = [];
+      let betChipPool = [];
+
+      $('#bet-chip-box').on("click", async function (evt) 
+      {
+        let id = evt.target.id;
+        $('#last-bet').attr("src",evt.target.src);
+        betTotal += Number(id);
+        bank -= Number(id);
+        betPool.push(id);
+        betChipPool.push(evt.target.src);
+        $('#bet-total').text("$ " + betTotal);
+        $('#bank').text("Bank: $" + bank);
+        $('#deal-button').removeAttr('hidden');
+      });
+      $('#bet-total-box').on("click", "#last-bet", async function (evt) 
+      {
+        if(betPool.length > 0)
+        {
+          let putBack = betPool.pop();
+          if(putBack !== undefined && putBack !== NaN)
+          {
+            betTotal -= Number(putBack);
+            bank += Number(putBack);
+
+            $('#last-bet').attr("src", betChipPool.pop());
+            $('#bet-total').text("$ " + betTotal);
+            $('#bank').text("Bank: $" + bank);
+          }
+        }
+        if(betPool.length == 0)
+        {
+          $('#bet-total').text("");
+          $('#last-bet').attr("src", "");
+          $('#deal-button').attr('hidden', true);
+
+        }
+      });
+      $('#deal-button').on("click", async function (evt) 
+      {
+        $('#bet-container').attr('hidden', true);
+        dealCards();
+      });
     }
-  
-  
 
-  
-    async function gameSetup() {
-        let $dealerCardArea = $('#dealer-card-area');
-        let $playerCardArea = $('#player-card-area');
-        let username = $('#user-name').text();
-        let response = await axios.get(`${BASE_URL}/${username}`);
-        user = response.data.user;
-        console.log(user);
+    async function dealCards()
+    {
+      let $dealerCardArea = $('#dealer-card-area');
+      let $playerCardArea = $('#player-card-area');
 
+      playerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
+      $playerCardArea.append(
+      $('<img>', {
+          src: playerCardData.cards[0].image,
+      }), 
+      $('<img>', {
+          src: playerCardData.cards[1].image,
+      })
+      );
+      dealerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
+      $dealerCardArea.append(
+      $('<img>', {
+          src: dealerCardData.cards[0].image,
+      }), 
+      $('<img>', {
+          src: back_of_card_URL,
+      })
+      );
+
+      $('#menu-box').removeAttr('hidden');
+
+      $("#game-container").on("click", "#add", async function (evt) {
+      addCard("player").then(data => {
+          let playerHandValue = getHandValue("player");
+          console.log("player hand " + playerHandValue)
+          if(playerHandValue > 21)
+          {
+          console.log("bust")
+          $("#results").text("Bust")
+          let cardId = 0;
+          for(let card of $dealerCardArea.children())
+          {
+              card.src = dealerCardData.cards[cardId].image;
+              cardId++
+          }
+          setTimeout(() => {
+              $("#results").text("")
+              lostGame()
+          }, 3000);
+          }
+      });
+      });
       
-        let newGameBox = $(generateGameBoxHTML(user));
-        $("#game-container").append(newGameBox);
+      $("#game-container").on("click", "#fold", async function (evt) {
+      lostGame()
+      });
 
-        playerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
-        $playerCardArea.append(
-        $('<img>', {
-            src: playerCardData.cards[0].image,
-        }), 
-        $('<img>', {
-            src: playerCardData.cards[1].image,
-        })
-        );
-        dealerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
-        $dealerCardArea.append(
-        $('<img>', {
-            src: dealerCardData.cards[0].image,
-        }), 
-        $('<img>', {
-            src: back_of_card_URL,
-        })
-        );
+      $("#game-container").on("click", "#hold", async function (evt) {
+      let cardId = 0;
+      for(let card of $dealerCardArea.children())
+      {
+          card.src = dealerCardData.cards[cardId].image;
+          cardId++
+      }
+      let playerHandValue = getHandValue("player");
+      let dealerHandValue = getHandValue("dealer");
 
-        $("#game-container").on("click", "#add", async function (evt) {
-        addCard("player").then(data => {
-            let playerHandValue = getHandValue("player");
-            console.log("player hand " + playerHandValue)
-            if(playerHandValue > 21)
-            {
-            console.log("bust")
-            $("#results").text("Bust")
-            let cardId = 0;
-            for(let card of $dealerCardArea.children())
-            {
-                card.src = dealerCardData.cards[cardId].image;
-                cardId++
-            }
-            setTimeout(() => {
-                $("#results").text("")
-                lostGame()
-            }, 3000);
-            }
-        });
-        });
-        
-        $("#game-container").on("click", "#fold", async function (evt) {
-        lostGame()
-        });
+      dealerHandValue = await dealerGetCards(dealerHandValue)
 
-        $("#game-container").on("click", "#hold", async function (evt) {
-        let cardId = 0;
-        for(let card of $dealerCardArea.children())
-        {
-            card.src = dealerCardData.cards[cardId].image;
-            cardId++
-        }
-        let playerHandValue = getHandValue("player");
-        let dealerHandValue = getHandValue("dealer");
+      if(dealerHandValue > 21)
+      {
+          $("#results").text("Dealer bust")
+          wonGame()
+      }
+      else if(playerHandValue > dealerHandValue)
+      {
+          $("#results").text("You win")
+          wonGame()
+      }
+      else
+      {
+          $("#results").text("You lose")
+          lostGame()
+      }
 
-        dealerHandValue = await dealerGetCards(dealerHandValue)
-
-        if(dealerHandValue > 21)
-        {
-            $("#results").text("Dealer bust")
-            wonGame()
-        }
-        else if(playerHandValue > dealerHandValue)
-        {
-            $("#results").text("You win")
-            wonGame()
-        }
-        else
-        {
-            $("#results").text("You lose")
-            lostGame()
-        }
-
-        setTimeout(() => {
-            $("#results").text("")
-            gameReset()
-        }, 3000);
-        });
-      
+      setTimeout(() => {
+          $("#results").text("")
+          gameReset()
+      }, 3000);
+      });
     }
+
     async function addCard(person) 
     {
       newCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/`);
@@ -236,34 +258,16 @@ $(function() {
       {
         card.remove();
       }
-      playerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
-      $playerCardArea.append(
-        $('<img>', {
-          src: playerCardData.cards[0].image,
-        }), 
-        $('<img>', {
-          src: playerCardData.cards[1].image,
-        })
-      );
-      dealerCardData = await $.getJSON(`${card_URL}/${deckData.deck_id}/draw/?count=2`);
-      $dealerCardArea.append(
-        $('<img>', {
-          src: dealerCardData.cards[0].image,
-        }), 
-        $('<img>', {
-          src: back_of_card_URL,
-        })
-      );
-      let newfunds = "Funds: " + user.funds
-      $("#funds").text(newfunds)
+      betSetup()
     }
+
     async function lostGame() {
-      let betValue = $('input[name=bet]:checked', '#gameform').val()
-        user.funds -= parseInt(betValue);
+      console.log(betTotal)
+        user.funds -= parseInt(betTotal);
         let userName = user.userName;
         let password = user.password;
         let funds = user.funds;
-        let temp = await axios.patch(`${BASE_URL}/users/${user.id}`, {
+        let temp = await axios.patch(`${BASE_URL}/${user.userName}`, {
           userName,
           password,
           funds
@@ -271,13 +275,12 @@ $(function() {
         user = temp.data.user
     }
     async function wonGame() {
-      let betValue = $('input[name=bet]:checked', '#gameform').val()
-        user.funds += 2*parseInt(betValue);
-        let userName = user.userName;
+        user.funds += 2*parseInt(betTotal);
+        let username = user.userName;
         let password = user.password;
         let funds = user.funds;
-        let temp = await axios.patch(`${BASE_URL}/users/${user.id}`, {
-          userName,
+        let temp = await axios.patch(`${BASE_URL}/${username}`, {
+          username,
           password,
           funds
         });
@@ -286,7 +289,14 @@ $(function() {
   
     async function setup() {
       deckData = await $.getJSON(`${card_URL}/new/shuffle/?deck_count=2`)
-      gameSetup();
+
+      let username = $('#user-name').text();
+      let response = await axios.get(`${BASE_URL}/${username}`);
+      user = response.data.user;
+
+      betSetup();
+
+      //dealCards();
     }
     setup();
   });

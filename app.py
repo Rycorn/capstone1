@@ -119,3 +119,23 @@ def remove_user(username):
     session.pop("username")
 
     return redirect("/login")
+
+@app.route("/<username>", methods=["PATCH"])
+def update_cupcake(username):
+    """Update user from data in request. Return updated data.
+
+    Returns JSON like:
+        {user: [{id, userName, password, funds}]}
+    """
+    print(username)
+    data = request.json
+
+    user = User.query.get_or_404(username)
+
+    
+    user.funds = data['funds']
+
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify(user=user.to_dict())

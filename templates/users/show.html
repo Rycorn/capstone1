@@ -6,10 +6,37 @@
 {% endblock %}
 {% block content %}
 
+<div id="bet-container" hidden>
+  <div id="bet-total-box">
+    <img src="" id="last-bet">
+    <h2 id="bet-total"></h2>
+  </div>
+  <div id="bet-chip-box">
+    <h1 id="bank"></h1>
+    <div id="chip-box">
+      <img src="/static/img/chip_1.png" id="1">
+      <img src="/static/img/chip_5.png" id="5">
+      <img src="/static/img/chip_10.png" id="10">
+      <img src="/static/img/chip_25.png" id="25">
+      <img src="/static/img/chip_50.png" id="50">
+      <img src="/static/img/chip_100.png" id="100">
+      <img src="/static/img/chip_500.png" id="500">
+    </div>
+  </div>
+  <button id="deal-button" hidden>Deal</button>
+</div>
 <div id="game-container" value={{user.username}}>
   <div id="dealer-card-area">
   </div>
   <div id="player-card-area">
+  </div>
+  <div id="menu-box" hidden>
+    <form id="gameform">
+        <div id="game-button-container">
+            <button id="add" type="button">Hit</button>
+            <button id="hold" type="button">Hold</button>
+        </div>  
+    <form>
   </div>
   <p id="results"></p>
 </div>
