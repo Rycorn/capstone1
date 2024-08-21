@@ -73,7 +73,7 @@ $(function() {
       for(let i = 0; i < chipBox[0].childElementCount; i++)
       {
         let child = chipBox[0].children[i];
-        if(bank > Number(child.id))
+        if(bank >= Number(child.id))
         {
           child.hidden = false;
         }
